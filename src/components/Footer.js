@@ -9,29 +9,29 @@ function Footer() {
       <div className="container">
         <div className="footer-content">
           <div className="footer-section">
-            <h3><i className="fas fa-store"></i> मोबाइल शॉप</h3>
-            <p>आपकी पसंद का ऑनलाइन शॉपिंग स्टोर</p>
+            <h3><i className="fas fa-home"></i> Shine Your Home</h3>
+            <p>Your one-stop home decor shop</p>
           </div>
           
           <div className="footer-section">
-            <h3>जल्दी लिंक</h3>
+            <h3>Quick Links</h3>
             <ul>
-              <li><a href="/">होम</a></li>
-              <li><a href="/products">उत्पाद</a></li>
-              <li><a href="/cart">कार्ट</a></li>
-              <li><a href="/admin">एडमिन</a></li>
+              <li><Link to="/">Home</Link></li>
+              <li><Link to="/products">Products</Link></li>
+              <li><Link to="/cart">Cart</Link></li>
+              <li><Link to="/admin">Admin</Link></li>
             </ul>
           </div>
           
           <div className="footer-section">
-            <h3>संपर्क करें</h3>
+            <h3>Contact Us</h3>
             <p><i className="fas fa-phone"></i> +91 9876543210</p>
-            <p><i className="fas fa-envelope"></i> support@mobileshop.com</p>
+            <p><i className="fas fa-envelope"></i> support@shineyourhome.com</p>
           </div>
         </div>
         
         <div className="footer-bottom">
-          <p>© {currentYear} मोबाइल शॉप. सभी अधिकार सुरक्षित | यह एक डेमो वेबसाइट है</p>
+          <p>© {currentYear} Shine Your Home. All rights reserved | This is a demo website</p>
         </div>
       </div>
     </footer>
