@@ -1,0 +1,42 @@
+/* Admin.css में ये जोड़ें */
+.demo-section {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border-left: 4px solid #2ecc71;
+}
+
+.demo-section h3 {
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+.demo-section p {
+  margin-bottom: 15px;
+  color: #7f8c8d;
+}
+
+.product-thumb {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.no-thumb {
+  width: 50px;
+  height: 50px;
+  background: #f8f9fa;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bdc3c7;
+}
+
+.product-desc {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
