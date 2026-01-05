@@ -1,68 +1,71 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { auth } from '../services/firebase';
-import { signOut } from 'firebase/auth';
-import './Header.css';
+import { Link } from 'react-router-dom';
 
-function Header({ user }) {
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate('/');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
-
+function Header() {
   return (
-    <header className="header">
+    <header style={styles.header}>
       <div className="container">
-        <div className="header-content">
-          <div className="logo">
-            <Link to="/">
-              <i className="fas fa-home"></i> {/* Home icon */}
-              <span>Shine Your Home</span> {/* नया नाम */}
+        <div style={styles.headerContent}>
+          <div style={styles.logo}>
+            <Link to="/" style={styles.logoLink}>
+              <i className="fas fa-home"></i>
+              <span>Shine Your Home</span>
             </Link>
           </div>
-
-          <nav className="nav">
-            <ul>
-              <li><Link to="/"><i className="fas fa-home"></i> Home</Link></li>
-              <li><Link to="/products"><i className="fas fa-box"></i> Products</Link></li>
-              <li><Link to="/cart"><i className="fas fa-shopping-cart"></i> Cart</Link></li>
-              
-              {user ? (
-                <>
-                  {/* Admin बटन हर logged-in user के लिए दिखाएं */}
-                  <li><Link to="/admin"><i className="fas fa-user-shield"></i> Admin</Link></li>
-                  <li>
-                    <button onClick={handleLogout} className="logout-btn">
-                      <i className="fas fa-sign-out-alt"></i> Logout
-                    </button>
-                  </li>
-                  <li className="user-info">
-                    <i className="fas fa-user-circle"></i>
-                    <span>{user.email}</span>
-                  </li>
-                </>
-              ) : (
-                <>
-                  <li><Link to="/login"><i className="fas fa-sign-in-alt"></i> Login</Link></li>
-                  <li><Link to="/register"><i className="fas fa-user-plus"></i> Register</Link></li>
-                </>
-              )}
-            </ul>
+          
+          <nav style={styles.nav}>
+            <Link to="/" style={styles.navLink}>
+              <i className="fas fa-home"></i> Home
+            </Link>
+            <Link to="/products" style={styles.navLink}>
+              <i className="fas fa-box"></i> Products
+            </Link>
+            <Link to="/cart" style={styles.navLink}>
+              <i className="fas fa-shopping-cart"></i> Cart
+            </Link>
+            <Link to="/admin" style={styles.navLink}>
+              <i className="fas fa-user-shield"></i> Admin
+            </Link>
           </nav>
-
-          <div className="mobile-menu-btn">
-            <i className="fas fa-bars"></i>
-          </div>
         </div>
       </div>
     </header>
   );
 }
+
+const styles = {
+  header: {
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    color: 'white',
+    padding: '15px 0',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+  },
+  headerContent: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  logoLink: {
+    color: 'white',
+    textDecoration: 'none',
+    fontSize: '20px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px'
+  },
+  nav: {
+    display: 'flex',
+    gap: '15px'
+  },
+  navLink: {
+    color: 'white',
+    textDecoration: 'none',
+    padding: '8px 15px',
+    borderRadius: '5px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px'
+  }
+};
 
 export default Header;
