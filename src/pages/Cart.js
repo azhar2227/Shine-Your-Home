@@ -1,117 +1,200 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import './Cart.css';
 
-function Cart() {
-  return (
-    <div>
-      <h1 style={styles.pageTitle}>आपकी शॉपिंग कार्ट</h1>
-      
-      <div style={styles.emptyCart}>
-        <i className="fas fa-shopping-cart" style={styles.cartIcon}></i>
-        <h2>आपकी कार्ट खाली है</h2>
-        <p style={styles.emptyText}>कुछ अच्छे उत्पाद खोजने के लिए ब्राउज़ करें</p>
-        <Link to="/products" style={styles.shopButton}>
-          <i className="fas fa-shopping-bag"></i> खरीदारी शुरू करें
-        </Link>
+function Cart({ user }) {
+  const navigate = useNavigate();
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadCart();
+  }, []);
+
+  const loadCart = () => {
+    const savedCart = JSON.parse(localStorage.getItem('cart')) || [];
+    setCartItems(savedCart);
+    setLoading(false);
+  };
+
+  const updateQuantity = (id, newQuantity) => {
+    if (newQuantity < 1) {
+      removeFromCart(id);
+      return;
+    }
+
+    const updatedCart = cartItems.map(item => 
+      item.id === id ? { ...item, quantity: newQuantity } : item
+    );
+    
+    setCartItems(updatedCart);
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+  };
+
+  const removeFromCart = (id) => {
+    const updatedCart = cartItems.filter(item => item.id !== id);
+    setCartItems(updatedCart);
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+  };
+
+  const clearCart = () => {
+    if (window.confirm('क्या आप पूरी कार्ट साफ़ करना चाहते हैं?')) {
+      setCartItems([]);
+      localStorage.removeItem('cart');
+    }
+  };
+
+  const calculateTotal = () => {
+    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  const proceedToCheckout = () => {
+    if (!user) {
+      alert('चेकआउट के लिए कृपया लॉगिन करें');
+      navigate('/login');
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      alert('कार्ट खाली है!');
+      return;
+    }
+
+    alert('चेकआउट सफल! यह एक डेमो वेबसाइट है।');
+    setCartItems([]);
+    localStorage.removeItem('cart');
+    navigate('/');
+  };
+
+  if (loading) {
+    return (
+      <div className="loading">
+        <div className="spinner"></div>
+        <p>कार्ट लोड हो रही है...</p>
       </div>
-      
-      <div style={styles.cartSummary}>
-        <h3>कार्ट सारांश</h3>
-        <div style={styles.summaryRow}>
-          <span>उप-योग:</span>
-          <span>₹0</span>
-        </div>
-        <div style={styles.summaryRow}>
-          <span>शिपिंग:</span>
-          <span style={{color: '#2ecc71'}}>मुफ़्त</span>
-        </div>
-        <div style={styles.summaryRow}>
-          <span>कुल राशि:</span>
-          <span style={styles.total}>₹0</span>
-        </div>
-        <button style={styles.checkoutButton} disabled>
-          <i className="fas fa-lock"></i> चेकआउट (डेमो)
-        </button>
-        <p style={styles.demoNote}>यह एक डेमो कार्ट है। असली उत्पादों के लिए Firebase कनेक्ट करें।</p>
+    );
+  }
+
+  return (
+    <div className="cart-page">
+      <div className="container">
+        <h1 className="page-title">आपकी शॉपिंग कार्ट</h1>
+        
+        {cartItems.length === 0 ? (
+          <div className="empty-cart">
+            <i className="fas fa-shopping-cart"></i>
+            <h2>आपकी कार्ट खाली है</h2>
+            <p>कुछ अच्छे उत्पाद खोजने के लिए ब्राउज़ करें</p>
+            <Link to="/products" className="btn btn-primary">
+              <i className="fas fa-shopping-bag"></i> खरीदारी शुरू करें
+            </Link>
+          </div>
+        ) : (
+          <>
+            <div className="cart-container">
+              <div className="cart-items">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="cart-item">
+                    <div className="item-image">
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.name} />
+                      ) : (
+                        <div className="no-image">
+                          <i className="fas fa-image"></i>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="item-details">
+                      <h3>{item.name}</h3>
+                      <p className="item-description">
+                        {item.description?.substring(0, 100)}...
+                      </p>
+                      <div className="item-price">₹{item.price}</div>
+                    </div>
+                    
+                    <div className="item-quantity">
+                      <button 
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        className="quantity-btn"
+                      >
+                        <i className="fas fa-minus"></i>
+                      </button>
+                      <span className="quantity">{item.quantity}</span>
+                      <button 
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        className="quantity-btn"
+                      >
+                        <i className="fas fa-plus"></i>
+                      </button>
+                    </div>
+                    
+                    <div className="item-total">
+                      ₹{item.price * item.quantity}
+                    </div>
+                    
+                    <button 
+                      onClick={() => removeFromCart(item.id)}
+                      className="remove-btn"
+                    >
+                      <i className="fas fa-trash"></i>
+                    </button>
+                  </div>
+                ))}
+                
+                <div className="cart-actions">
+                  <button onClick={clearCart} className="btn btn-danger">
+                    <i className="fas fa-trash"></i> कार्ट साफ़ करें
+                  </button>
+                  <Link to="/products" className="btn btn-primary">
+                    <i className="fas fa-plus"></i> और उत्पाद जोड़ें
+                  </Link>
+                </div>
+              </div>
+              
+              <div className="cart-summary">
+                <h2>ऑर्डर सारांश</h2>
+                
+                <div className="summary-row">
+                  <span>उप-योग:</span>
+                  <span>₹{calculateTotal()}</span>
+                </div>
+                
+                <div className="summary-row">
+                  <span>शिपिंग:</span>
+                  <span className="free">मुफ़्त</span>
+                </div>
+                
+                <div className="summary-row">
+                  <span>कर (18%):</span>
+                  <span>₹{(calculateTotal() * 0.18).toFixed(2)}</span>
+                </div>
+                
+                <div className="summary-row total">
+                  <span>कुल राशि:</span>
+                  <span>₹{(calculateTotal() * 1.18).toFixed(2)}</span>
+                </div>
+                
+                <button onClick={proceedToCheckout} className="btn btn-success checkout-btn">
+                  <i className="fas fa-lock"></i> सुरक्षित चेकआउट
+                </button>
+                
+                <div className="payment-methods">
+                  <h3>भुगतान के तरीके</h3>
+                  <div className="methods">
+                    <i className="fab fa-cc-visa"></i>
+                    <i className="fab fa-cc-mastercard"></i>
+                    <i className="fab fa-cc-paypal"></i>
+                    <i className="fas fa-university"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
 }
-
-const styles = {
-  pageTitle: {
-    textAlign: 'center',
-    marginBottom: '30px',
-    color: '#2c3e50'
-  },
-  emptyCart: {
-    textAlign: 'center',
-    padding: '50px 20px',
-    background: 'white',
-    borderRadius: '10px',
-    boxShadow: '0 5px 15px rgba(0,0,0,0.1)',
-    marginBottom: '30px'
-  },
-  cartIcon: {
-    fontSize: '4rem',
-    color: '#bdc3c7',
-    marginBottom: '20px'
-  },
-  emptyText: {
-    margin: '15px 0 25px',
-    color: '#7f8c8d'
-  },
-  shopButton: {
-    display: 'inline-block',
-    background: '#3498db',
-    color: 'white',
-    padding: '12px 25px',
-    borderRadius: '5px',
-    textDecoration: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '10px',
-    fontSize: '1.1rem'
-  },
-  cartSummary: {
-    background: 'white',
-    padding: '25px',
-    borderRadius: '10px',
-    boxShadow: '0 5px 15px rgba(0,0,0,0.1)'
-  },
-  summaryRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    padding: '10px 0',
-    borderBottom: '1px solid #eee'
-  },
-  total: {
-    fontSize: '1.3rem',
-    fontWeight: 'bold',
-    color: '#e74c3c'
-  },
-  checkoutButton: {
-    width: '100%',
-    background: '#95a5a6',
-    color: 'white',
-    border: 'none',
-    padding: '15px',
-    borderRadius: '5px',
-    fontSize: '1.1rem',
-    marginTop: '20px',
-    cursor: 'not-allowed',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '10px'
-  },
-  demoNote: {
-    textAlign: 'center',
-    marginTop: '15px',
-    color: '#7f8c8d',
-    fontSize: '0.9rem'
-  }
-};
 
 export default Cart;
