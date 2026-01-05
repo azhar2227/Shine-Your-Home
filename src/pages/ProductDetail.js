@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { db } from '../services/firebase';
-import { doc, getDoc } from 'firebase/firestore';
 import './ProductDetail.css';
 
 function ProductDetail() {
@@ -11,28 +9,47 @@ function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
 
+  // fetchProduct को useEffect के अंदर ले जाते हैं
   useEffect(() => {
-    fetchProduct();
-  }, [id]);
-
-  const fetchProduct = async () => {
-    try {
-      const docRef = doc(db, 'products', id);
-      const docSnap = await getDoc(docRef);
-      
-      if (docSnap.exists()) {
-        setProduct({ id: docSnap.id, ...docSnap.data() });
-      } else {
-        alert('उत्पाद नहीं मिला!');
-        navigate('/products');
+    const fetchProduct = async () => {
+      try {
+        // डेमो डेटा - बाद में Firebase से replace करें
+        const demoProducts = [
+          {
+            id: "1",
+            name: "स्मार्टफोन",
+            price: 19999,
+            description: "128GB स्टोरेज, 8GB RAM, 48MP कैमरा",
+            imageUrl: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+            category: "इलेक्ट्रॉनिक्स"
+          },
+          {
+            id: "2", 
+            name: "लैपटॉप",
+            price: 45999,
+            description: "15.6 इंच, Intel i5, 8GB RAM, 512GB SSD",
+            imageUrl: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+            category: "इलेक्ट्रॉनिक्स"
+          }
+        ];
+        
+        const foundProduct = demoProducts.find(p => p.id === id);
+        if (foundProduct) {
+          setProduct(foundProduct);
+        } else {
+          alert('उत्पाद नहीं मिला!');
+          navigate('/products');
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        alert('उत्पाद लोड करने में त्रुटि!');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching product:', error);
-      alert('उत्पाद लोड करने में त्रुटि!');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchProduct();
+  }, [id, navigate]); // सभी dependencies include करें
 
   const addToCart = () => {
     if (!product) return;
@@ -114,12 +131,6 @@ function ProductDetail() {
             
             <div className="price-container">
               <span className="current-price">₹{product.price}</span>
-              {product.oldPrice && (
-                <span className="old-price">₹{product.oldPrice}</span>
-              )}
-              {product.discount && (
-                <span className="discount">-{product.discount}%</span>
-              )}
             </div>
             
             <div className="quantity-selector">
