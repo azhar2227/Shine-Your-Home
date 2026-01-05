@@ -1,356 +1,223 @@
-import React, { useState, useEffect } from 'react';
-import { db } from '../services/firebase';
-import { 
-  collection, 
-  addDoc, 
-  getDocs, 
-  doc, 
-  deleteDoc,
-  updateDoc 
-} from 'firebase/firestore';
-import './Admin.css';
-
-function Admin() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState(null);
-
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    category: '',
-    imageUrl: ''
-  });
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, 'products'));
-      const productsList = [];
-      querySnapshot.forEach((doc) => {
-        productsList.push({ id: doc.id, ...doc.data() });
-      });
-      setProducts(productsList);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      alert('उत्पाद लोड करने में त्रुटि!');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!formData.name || !formData.price) {
-      alert('कृपया उत्पाद का नाम और कीमत भरें');
-      return;
-    }
-
-    try {
-      const productData = {
-        name: formData.name,
-        description: formData.description,
-        price: parseFloat(formData.price),
-        category: formData.category || 'सामान्य',
-        imageUrl: formData.imageUrl || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-
-      if (editing && currentProduct) {
-        await updateDoc(doc(db, 'products', currentProduct.id), productData);
-        alert('उत्पाद अपडेट किया गया!');
-      } else {
-        await addDoc(collection(db, 'products'), productData);
-        alert('उत्पाद जोड़ा गया!');
-      }
-
-      resetForm();
-      fetchProducts();
-    } catch (error) {
-      console.error('Error saving product:', error);
-      alert('उत्पाद सेव करने में त्रुटि!');
-    }
-  };
-
-  const handleEdit = (product) => {
-    setEditing(true);
-    setCurrentProduct(product);
-    setFormData({
-      name: product.name,
-      description: product.description || '',
-      price: product.price.toString(),
-      category: product.category || '',
-      imageUrl: product.imageUrl || ''
-    });
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('क्या आप वाकई इस उत्पाद को हटाना चाहते हैं?')) {
-      return;
-    }
-
-    try {
-      await deleteDoc(doc(db, 'products', id));
-      alert('उत्पाद हटा दिया गया!');
-      fetchProducts();
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      alert('उत्पाद हटाने में त्रुटि!');
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      description: '',
-      price: '',
-      category: '',
-      imageUrl: ''
-    });
-    setEditing(false);
-    setCurrentProduct(null);
-  };
-
-  const defaultImages = [
-    'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
-    'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
-    'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
-    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'
-  ];
-
-  const addDemoProducts = async () => {
-    if (!window.confirm('क्या आप डेमो उत्पाद जोड़ना चाहते हैं?')) return;
-
-    const demoProducts = [
-      {
-        name: 'स्मार्टफोन',
-        description: '128GB स्टोरेज, 8GB RAM, 48MP कैमरा',
-        price: 19999,
-        category: 'इलेक्ट्रॉनिक्स',
-        imageUrl: defaultImages[0]
-      },
-      {
-        name: 'लैपटॉप',
-        description: '15.6 इंच, Intel i5, 8GB RAM, 512GB SSD',
-        price: 45999,
-        category: 'इलेक्ट्रॉनिक्स',
-        imageUrl: defaultImages[1]
-      },
-      {
-        name: 'स्मार्टवॉच',
-        description: 'फ़िटनेस ट्रैकर, हार्ट रेट मॉनिटर',
-        price: 5999,
-        category: 'इलेक्ट्रॉनिक्स',
-        imageUrl: defaultImages[2]
-      },
-      {
-        name: 'हेडफोन',
-        description: 'वायरलेस, नॉइस कैंसलेशन',
-        price: 2499,
-        category: 'इलेक्ट्रॉनिक्स',
-        imageUrl: defaultImages[3]
-      }
-    ];
-
-    try {
-      for (const product of demoProducts) {
-        await addDoc(collection(db, 'products'), {
-          ...product,
-          createdAt: new Date().toISOString()
-        });
-      }
-      alert('डेमो उत्पाद जोड़े गए!');
-      fetchProducts();
-    } catch (error) {
-      console.error('Error adding demo products:', error);
-      alert('त्रुटि हुई!');
-    }
-  };
-
-  return (
-    <div className="admin-page">
-      <div className="container">
-        <h1 className="page-title">एडमिन पैनल</h1>
-        
-        <div className="admin-container">
-          <div className="admin-form-section">
-            <h2>{editing ? 'उत्पाद संपादित करें' : 'नया उत्पाद जोड़ें'}</h2>
-            
-            <form onSubmit={handleSubmit} className="product-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>उत्पाद का नाम *</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="उत्पाद का नाम"
-                    required
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label>कीमत (₹) *</label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleInputChange}
-                    placeholder="कीमत"
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="form-group">
-                <label>श्रेणी</label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                >
-                  <option value="">श्रेणी चुनें</option>
-                  <option value="इलेक्ट्रॉनिक्स">इलेक्ट्रॉनिक्स</option>
-                  <option value="कपड़े">कपड़े</option>
-                  <option value="किताबें">किताबें</option>
-                  <option value="घर">घर</option>
-                  <option value="खेल">खेल</option>
-                </select>
-              </div>
-              
-              <div className="form-group">
-                <label>इमेज URL</label>
-                <input
-                  type="text"
-                  name="imageUrl"
-                  value={formData.imageUrl}
-                  onChange={handleInputChange}
-                  placeholder="https://example.com/image.jpg"
-                />
-                <small>Unsplash.com से फ्री इमेज URL डालें</small>
-              </div>
-              
-              <div className="form-group">
-                <label>विवरण</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  placeholder="उत्पाद का विवरण"
-                  rows="4"
-                ></textarea>
-              </div>
-              
-              <div className="form-actions">
-                <button type="submit" className="btn btn-primary">
-                  {editing ? 'अपडेट करें' : 'जोड़ें'}
-                </button>
-                {editing && (
-                  <button 
-                    type="button" 
-                    onClick={resetForm}
-                    className="btn btn-secondary"
-                  >
-                    रद्द करें
-                  </button>
-                )}
-              </div>
-            </form>
-            
-            <div className="demo-section">
-              <h3>त्वरित शुरुआत</h3>
-              <p>कोई उत्पाद नहीं है? डेमो उत्पाद जोड़ें:</p>
-              <button onClick={addDemoProducts} className="btn btn-success">
-                <i className="fas fa-plus"></i> डेमो उत्पाद जोड़ें
-              </button>
-            </div>
-          </div>
-          
-          <div className="products-list-section">
-            <h2>सभी उत्पाद ({products.length})</h2>
-            
-            {loading ? (
-              <div className="loading">लोड हो रहा है...</div>
-            ) : products.length === 0 ? (
-              <div className="no-products">
-                <i className="fas fa-box-open"></i>
-                <p>कोई उत्पाद नहीं है। पहला उत्पाद जोड़ें या डेमो उत्पाद जोड़ें!</p>
-              </div>
-            ) : (
-              <div className="products-table-container">
-                <table className="products-table">
-                  <thead>
-                    <tr>
-                      <th>छवि</th>
-                      <th>नाम</th>
-                      <th>कीमत</th>
-                      <th>श्रेणी</th>
-                      <th>क्रियाएँ</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {products.map((product) => (
-                      <tr key={product.id}>
-                        <td>
-                          {product.imageUrl ? (
-                            <img src={product.imageUrl} alt={product.name} className="product-thumb" />
-                          ) : (
-                            <div className="no-thumb">
-                              <i className="fas fa-image"></i>
-                            </div>
-                          )}
-                        </td>
-                        <td>
-                          <strong>{product.name}</strong>
-                          <p className="product-desc">{product.description?.substring(0, 50)}...</p>
-                        </td>
-                        <td>₹{product.price}</td>
-                        <td>{product.category || 'सामान्य'}</td>
-                        <td>
-                          <div className="action-buttons">
-                            <button 
-                              onClick={() => handleEdit(product)}
-                              className="btn-edit"
-                            >
-                              <i className="fas fa-edit"></i>
-                            </button>
-                            <button 
-                              onClick={() => handleDelete(product.id)}
-                              className="btn-delete"
-                            >
-                              <i className="fas fa-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+.admin-page {
+  padding: 20px 0;
 }
 
-export default Admin;
+.admin-container {
+  display: grid;
+  gap: 40px;
+}
+
+.admin-form-section,
+.products-list-section {
+  background: white;
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.admin-form-section h2,
+.products-list-section h2 {
+  margin-bottom: 25px;
+  color: #2c3e50;
+  font-size: 1.8rem;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f8f9fa;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #34495e;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: border 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.btn-secondary {
+  background: #95a5a6;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #7f8c8d;
+}
+
+.demo-section {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border-left: 4px solid #2ecc71;
+}
+
+.demo-section h3 {
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+.demo-section p {
+  margin-bottom: 15px;
+  color: #7f8c8d;
+}
+
+.no-products {
+  text-align: center;
+  padding: 40px;
+  color: #7f8c8d;
+}
+
+.no-products i {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.products-table-container {
+  overflow-x: auto;
+}
+
+.products-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.products-table th {
+  background: #f8f9fa;
+  padding: 15px;
+  text-align: left;
+  color: #2c3e50;
+  font-weight: bold;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.products-table td {
+  padding: 15px;
+  border-bottom: 1px solid #e9ecef;
+  vertical-align: middle;
+}
+
+.product-thumb {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.no-thumb {
+  width: 50px;
+  height: 50px;
+  background: #f8f9fa;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bdc3c7;
+}
+
+.product-desc {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-edit,
+.btn-delete {
+  width: 35px;
+  height: 35px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.btn-edit {
+  background: #3498db;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #2980b9;
+}
+
+.btn-delete {
+  background: #e74c3c;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #c0392b;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #7f8c8d;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-form-section,
+  .products-list-section {
+    padding: 20px;
+  }
+  
+  .products-table th,
+  .products-table td {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .form-actions .btn {
+    width: 100%;
+  }
+}
