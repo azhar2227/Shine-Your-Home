@@ -22,36 +22,35 @@ function Header({ user }) {
         <div className="header-content">
           <div className="logo">
             <Link to="/">
-              <i className="fas fa-store"></i>
-              <span>मोबाइल शॉप</span>
+              <i className="fas fa-home"></i> {/* Home icon */}
+              <span>Shine Your Home</span> {/* नया नाम */}
             </Link>
           </div>
 
           <nav className="nav">
             <ul>
-              <li><Link to="/"><i className="fas fa-home"></i> होम</Link></li>
-              <li><Link to="/products"><i className="fas fa-box"></i> उत्पाद</Link></li>
-              <li><Link to="/cart"><i className="fas fa-shopping-cart"></i> कार्ट</Link></li>
+              <li><Link to="/"><i className="fas fa-home"></i> Home</Link></li>
+              <li><Link to="/products"><i className="fas fa-box"></i> Products</Link></li>
+              <li><Link to="/cart"><i className="fas fa-shopping-cart"></i> Cart</Link></li>
               
               {user ? (
                 <>
-                  {user.email === "admin@example.com" && (
-                    <li><Link to="/admin"><i className="fas fa-user-shield"></i> एडमिन</Link></li>
-                  )}
+                  {/* Admin बटन हर logged-in user के लिए दिखाएं */}
+                  <li><Link to="/admin"><i className="fas fa-user-shield"></i> Admin</Link></li>
                   <li>
                     <button onClick={handleLogout} className="logout-btn">
-                      <i className="fas fa-sign-out-alt"></i> लॉगआउट
+                      <i className="fas fa-sign-out-alt"></i> Logout
                     </button>
                   </li>
                   <li className="user-info">
                     <i className="fas fa-user-circle"></i>
-                    <span>{user.email.split('@')[0]}</span>
+                    <span>{user.email}</span>
                   </li>
                 </>
               ) : (
                 <>
-                  <li><Link to="/login"><i className="fas fa-sign-in-alt"></i> लॉगिन</Link></li>
-                  <li><Link to="/register"><i className="fas fa-user-plus"></i> रजिस्टर</Link></li>
+                  <li><Link to="/login"><i className="fas fa-sign-in-alt"></i> Login</Link></li>
+                  <li><Link to="/register"><i className="fas fa-user-plus"></i> Register</Link></li>
                 </>
               )}
             </ul>
