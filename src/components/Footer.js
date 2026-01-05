@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom'; // ✅ यहाँ Link import करें
 import './Footer.css';
 
 function Footer() {
