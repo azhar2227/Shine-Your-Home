@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { db } from '../services/firebase';
-import { collection, getDocs, limit } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore'; // limit हटा दिया
 import './Home.css';
 
 function Home() {
