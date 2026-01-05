@@ -1,128 +1,136 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { db } from '../services/firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import './Products.css';
 
 function Products() {
-  const [products] = useState([
-    {
-      id: 1,
-      name: 'स्मार्टफोन',
-      price: 19999,
-      description: 'लैटेस्ट स्मार्टफोन 128GB',
-      image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=60'
-    },
-    {
-      id: 2,
-      name: 'लैपटॉप',
-      price: 45999,
-      description: 'हाई परफॉर्मेंस लैपटॉप',
-      image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=60'
-    },
-    {
-      id: 3,
-      name: 'हेडफोन',
-      price: 2499,
-      description: 'वायरलेस हेडफोन',
-      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=60'
-    },
-    {
-      id: 4,
-      name: 'स्मार्टवॉच',
-      price: 5999,
-      description: 'फ़िटनेस ट्रैकर वॉच',
-      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=60'
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [cart, setCart] = useState([]);
+
+  useEffect(() => {
+    fetchProducts();
+    loadCart();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'products'));
+      const productsList = [];
+      querySnapshot.forEach((doc) => {
+        productsList.push({ id: doc.id, ...doc.data() });
+      });
+      setProducts(productsList);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  const loadCart = () => {
+    const savedCart = JSON.parse(localStorage.getItem('cart')) || [];
+    setCart(savedCart);
+  };
 
   const addToCart = (product) => {
-    alert(`${product.name} कार्ट में जोड़ा गया!`);
+    const updatedCart = [...cart];
+    const existingItem = updatedCart.find(item => item.id === product.id);
+    
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      updatedCart.push({ ...product, quantity: 1 });
+    }
+    
+    setCart(updatedCart);
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    alert(`${product.name} कार्ट में जोड़ दिया गया है!`);
   };
 
   return (
-    <div>
-      <h1 style={styles.pageTitle}>हमारे उत्पाद</h1>
-      
-      <div style={styles.productsGrid}>
-        {products.map(product => (
-          <div key={product.id} style={styles.productCard}>
-            <img 
-              src={product.image} 
-              alt={product.name}
-              style={styles.productImage}
-            />
-            <div style={styles.productInfo}>
-              <h3 style={styles.productName}>{product.name}</h3>
-              <p style={styles.productDesc}>{product.description}</p>
-              <div style={styles.productFooter}>
-                <span style={styles.productPrice}>₹{product.price}</span>
-                <button 
-                  onClick={() => addToCart(product)}
-                  style={styles.addButton}
-                >
-                  <i className="fas fa-cart-plus"></i> कार्ट में डालें
-                </button>
-              </div>
-            </div>
+    <div className="products-page">
+      <div className="container">
+        <h1 className="page-title">हमारे सभी उत्पाद</h1>
+        
+        <div className="products-header">
+          <div className="cart-summary">
+            <Link to="/cart" className="cart-link">
+              <i className="fas fa-shopping-cart"></i>
+              <span className="cart-count">{cart.length}</span>
+              कार्ट देखें
+            </Link>
           </div>
-        ))}
+        </div>
+        
+        {loading ? (
+          <div className="loading">
+            <div className="spinner"></div>
+            <p>उत्पाद लोड हो रहे हैं...</p>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="no-products">
+            <i className="fas fa-box-open"></i>
+            <h3>कोई उत्पाद नहीं मिला</h3>
+            <p>पहला उत्पाद जोड़ने के लिए एडमिन पैनल पर जाएँ</p>
+          </div>
+        ) : (
+          <div className="products-container">
+            {products.map((product) => (
+              <div key={product.id} className="product-item">
+                <div className="product-image">
+                  {product.imageUrl ? (
+                    <img src={product.imageUrl} alt={product.name} />
+                  ) : (
+                    <div className="no-image">
+                      <i className="fas fa-image"></i>
+                    </div>
+                  )}
+                  <div className="product-overlay">
+                    <button 
+                      className="add-to-cart-btn"
+                      onClick={() => addToCart(product)}
+                    >
+                      <i className="fas fa-cart-plus"></i> कार्ट में डालें
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="product-details">
+                  <h3>{product.name}</h3>
+                  <p className="product-category">
+                    <i className="fas fa-tag"></i> {product.category || 'सामान्य'}
+                  </p>
+                  <p className="product-description">
+                    {product.description?.substring(0, 100)}...
+                  </p>
+                  
+                  <div className="product-footer">
+                    <div className="price-section">
+                      <span className="price">₹{product.price}</span>
+                      {product.oldPrice && (
+                        <span className="old-price">₹{product.oldPrice}</span>
+                      )}
+                    </div>
+                    
+                    <div className="product-actions">
+                      <Link 
+                        to={`/product/${product.id}`} 
+                        className="btn-view"
+                      >
+                        <i className="fas fa-eye"></i> देखें
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
-const styles = {
-  pageTitle: {
-    textAlign: 'center',
-    marginBottom: '30px',
-    color: '#2c3e50'
-  },
-  productsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-    gap: '25px'
-  },
-  productCard: {
-    background: 'white',
-    borderRadius: '10px',
-    overflow: 'hidden',
-    boxShadow: '0 5px 15px rgba(0,0,0,0.1)'
-  },
-  productImage: {
-    width: '100%',
-    height: '200px',
-    objectFit: 'cover'
-  },
-  productInfo: {
-    padding: '20px'
-  },
-  productName: {
-    fontSize: '1.3rem',
-    marginBottom: '10px',
-    color: '#2c3e50'
-  },
-  productDesc: {
-    color: '#7f8c8d',
-    marginBottom: '15px'
-  },
-  productFooter: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  productPrice: {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    color: '#e74c3c'
-  },
-  addButton: {
-    background: '#3498db',
-    color: 'white',
-    border: 'none',
-    padding: '8px 15px',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '5px'
-  }
-};
 
 export default Products;
