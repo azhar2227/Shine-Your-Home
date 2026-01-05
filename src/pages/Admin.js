@@ -1,28 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { db, storage } from '../services/firebase';
-import { 
-  collection, 
-  addDoc, 
-  getDocs, 
-  doc, 
-  deleteDoc,
-  updateDoc 
-} from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db } from '../services/firebase';
+import { collection, addDoc, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import './Admin.css';
 
 function Admin() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState(null);
-
+  
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: '',
     category: '',
-    image: null,
     imageUrl: ''
   });
 
@@ -32,15 +21,18 @@ function Admin() {
 
   const fetchProducts = async () => {
     try {
+      console.log('Fetching products...');
       const querySnapshot = await getDocs(collection(db, 'products'));
       const productsList = [];
       querySnapshot.forEach((doc) => {
+        console.log('Product:', doc.id, doc.data());
         productsList.push({ id: doc.id, ...doc.data() });
       });
       setProducts(productsList);
+      console.log('Products fetched:', productsList.length);
     } catch (error) {
       console.error('Error fetching products:', error);
-      alert('उत्पाद लोड करने में त्रुटि!');
+      alert('Error loading products! Check console for details.');
     } finally {
       setLoading(false);
     }
@@ -54,266 +46,236 @@ function Admin() {
     });
   };
 
-  const handleImageChange = (e) => {
-    setFormData({
-      ...formData,
-      image: e.target.files[0]
-    });
-  };
-
-  const uploadImage = async (file) => {
-    if (!file) return null;
-    
-    const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
-    await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(storageRef);
-    return downloadURL;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!formData.name || !formData.price) {
-      alert('कृपया उत्पाद का नाम और कीमत भरें');
+      alert('Please enter product name and price');
       return;
     }
 
     try {
-      let imageUrl = formData.imageUrl;
-      
-      if (formData.image) {
-        imageUrl = await uploadImage(formData.image);
-      }
-
       const productData = {
         name: formData.name,
         description: formData.description,
         price: parseFloat(formData.price),
-        category: formData.category || 'सामान्य',
-        imageUrl: imageUrl,
+        category: formData.category || 'General',
+        imageUrl: formData.imageUrl || 'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
 
-      if (editing && currentProduct) {
-        await updateDoc(doc(db, 'products', currentProduct.id), productData);
-        alert('उत्पाद अपडेट किया गया!');
-      } else {
-        await addDoc(collection(db, 'products'), productData);
-        alert('उत्पाद जोड़ा गया!');
-      }
-
-      resetForm();
+      console.log('Adding product:', productData);
+      await addDoc(collection(db, 'products'), productData);
+      alert('Product added successfully!');
+      
+      // Form reset
+      setFormData({
+        name: '',
+        description: '',
+        price: '',
+        category: '',
+        imageUrl: ''
+      });
+      
+      // Refresh products list
       fetchProducts();
     } catch (error) {
       console.error('Error saving product:', error);
-      alert('उत्पाद सेव करने में त्रुटि!');
+      alert('Error saving product! Check console.');
     }
   };
 
-  const handleEdit = (product) => {
-    setEditing(true);
-    setCurrentProduct(product);
-    setFormData({
-      name: product.name,
-      description: product.description || '',
-      price: product.price.toString(),
-      category: product.category || '',
-      image: null,
-      imageUrl: product.imageUrl || ''
-    });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   const handleDelete = async (id) => {
-    if (!window.confirm('क्या आप वाकई इस उत्पाद को हटाना चाहते हैं?')) {
+    if (!window.confirm('Are you sure you want to delete this product?')) {
       return;
     }
 
     try {
       await deleteDoc(doc(db, 'products', id));
-      alert('उत्पाद हटा दिया गया!');
+      alert('Product deleted!');
       fetchProducts();
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert('उत्पाद हटाने में त्रुटि!');
+      alert('Error deleting product!');
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      description: '',
-      price: '',
-      category: '',
-      image: null,
-      imageUrl: ''
-    });
-    setEditing(false);
-    setCurrentProduct(null);
+  const addDemoProducts = async () => {
+    if (!window.confirm('Add demo products?')) return;
+
+    const demoProducts = [
+      {
+        name: 'Modern Sofa',
+        description: 'Comfortable 3-seater sofa in grey fabric',
+        price: 29999,
+        category: 'Furniture',
+        imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'
+      },
+      {
+        name: 'LED Wall Lamp',
+        description: 'Energy efficient LED wall lamp with dimmer',
+        price: 3499,
+        category: 'Lighting',
+        imageUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'
+      },
+      {
+        name: 'Decorative Vase',
+        description: 'Ceramic decorative vase for living room',
+        price: 1499,
+        category: 'Decor',
+        imageUrl: 'https://images.unsplash.com/photo-1578500494198-246f612d3b3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'
+      },
+      {
+        name: 'Coffee Table',
+        description: 'Wooden coffee table with storage',
+        price: 8999,
+        category: 'Furniture',
+        imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
+      }
+    ];
+
+    try {
+      for (const product of demoProducts) {
+        await addDoc(collection(db, 'products'), {
+          ...product,
+          createdAt: new Date().toISOString()
+        });
+      }
+      alert('Demo products added!');
+      fetchProducts();
+    } catch (error) {
+      console.error('Error adding demo products:', error);
+      alert('Error! Check console.');
+    }
   };
 
   return (
     <div className="admin-page">
       <div className="container">
-        <h1 className="page-title">एडमिन पैनल</h1>
+        <h1 className="page-title">Admin Panel</h1>
         
         <div className="admin-container">
-          {/* Product Form */}
+          {/* Add Product Form */}
           <div className="admin-form-section">
-            <h2>{editing ? 'उत्पाद संपादित करें' : 'नया उत्पाद जोड़ें'}</h2>
+            <h2>Add New Product</h2>
             
             <form onSubmit={handleSubmit} className="product-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>उत्पाद का नाम *</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="उत्पाद का नाम"
-                    required
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label>कीमत (₹) *</label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleInputChange}
-                    placeholder="कीमत"
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
+              <div className="form-group">
+                <label>Product Name *</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Product name"
+                  required
+                />
               </div>
               
               <div className="form-group">
-                <label>श्रेणी</label>
+                <label>Price (₹) *</label>
+                <input
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleInputChange}
+                  placeholder="Price"
+                  min="0"
+                  step="0.01"
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Category</label>
                 <select
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
                 >
-                  <option value="">श्रेणी चुनें</option>
-                  <option value="इलेक्ट्रॉनिक्स">इलेक्ट्रॉनिक्स</option>
-                  <option value="कपड़े">कपड़े</option>
-                  <option value="किताबें">किताबें</option>
-                  <option value="घर">घर</option>
-                  <option value="खेल">खेल</option>
+                  <option value="">Select Category</option>
+                  <option value="Furniture">Furniture</option>
+                  <option value="Lighting">Lighting</option>
+                  <option value="Decor">Decor</option>
+                  <option value="Kitchen">Kitchen</option>
+                  <option value="Bathroom">Bathroom</option>
                 </select>
               </div>
               
               <div className="form-group">
-                <label>विवरण</label>
+                <label>Image URL</label>
+                <input
+                  type="text"
+                  name="imageUrl"
+                  value={formData.imageUrl}
+                  onChange={handleInputChange}
+                  placeholder="https://example.com/image.jpg"
+                />
+                <small>Leave empty for default image</small>
+              </div>
+              
+              <div className="form-group">
+                <label>Description</label>
                 <textarea
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
-                  placeholder="उत्पाद का विवरण"
-                  rows="4"
+                  placeholder="Product description"
+                  rows="3"
                 ></textarea>
               </div>
               
-              <div className="form-group">
-                <label>उत्पाद की छवि</label>
-                <div className="image-upload">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                  />
-                  {formData.imageUrl && (
-                    <div className="image-preview">
-                      <img src={formData.imageUrl} alt="Preview" />
-                      <p>वर्तमान इमेज</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="form-actions">
-                <button type="submit" className="btn btn-primary">
-                  {editing ? 'अपडेट करें' : 'जोड़ें'}
-                </button>
-                {editing && (
-                  <button 
-                    type="button" 
-                    onClick={resetForm}
-                    className="btn btn-secondary"
-                  >
-                    रद्द करें
-                  </button>
-                )}
-              </div>
+              <button type="submit" className="btn btn-primary">
+                Add Product
+              </button>
             </form>
+            
+            <div className="demo-section">
+              <h3>Quick Start</h3>
+              <p>No products? Add demo products:</p>
+              <button onClick={addDemoProducts} className="btn btn-success">
+                <i className="fas fa-plus"></i> Add Demo Products
+              </button>
+            </div>
           </div>
           
           {/* Products List */}
           <div className="products-list-section">
-            <h2>सभी उत्पाद ({products.length})</h2>
+            <h2>All Products ({products.length})</h2>
             
             {loading ? (
-              <div className="loading">लोड हो रहा है...</div>
+              <div className="loading">
+                <div className="spinner"></div>
+                <p>Loading products...</p>
+              </div>
             ) : products.length === 0 ? (
               <div className="no-products">
                 <i className="fas fa-box-open"></i>
-                <p>कोई उत्पाद नहीं है। पहला उत्पाद जोड़ें!</p>
+                <p>No products found. Add your first product or add demo products!</p>
               </div>
             ) : (
-              <div className="products-table-container">
-                <table className="products-table">
-                  <thead>
-                    <tr>
-                      <th>छवि</th>
-                      <th>नाम</th>
-                      <th>कीमत</th>
-                      <th>श्रेणी</th>
-                      <th>क्रियाएँ</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {products.map((product) => (
-                      <tr key={product.id}>
-                        <td>
-                          {product.imageUrl ? (
-                            <img src={product.imageUrl} alt={product.name} className="product-thumb" />
-                          ) : (
-                            <div className="no-thumb">
-                              <i className="fas fa-image"></i>
-                            </div>
-                          )}
-                        </td>
-                        <td>
-                          <strong>{product.name}</strong>
-                          <p className="product-desc">{product.description?.substring(0, 50)}...</p>
-                        </td>
-                        <td>₹{product.price}</td>
-                        <td>{product.category || 'सामान्य'}</td>
-                        <td>
-                          <div className="action-buttons">
-                            <button 
-                              onClick={() => handleEdit(product)}
-                              className="btn-edit"
-                            >
-                              <i className="fas fa-edit"></i>
-                            </button>
-                            <button 
-                              onClick={() => handleDelete(product.id)}
-                              className="btn-delete"
-                            >
-                              <i className="fas fa-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="products-grid">
+                {products.map((product) => (
+                  <div key={product.id} className="product-card">
+                    <div className="product-image">
+                      <img src={product.imageUrl} alt={product.name} />
+                    </div>
+                    <div className="product-info">
+                      <h3>{product.name}</h3>
+                      <p className="category">{product.category}</p>
+                      <p className="price">₹{product.price}</p>
+                      <div className="product-actions">
+                        <button 
+                          onClick={() => handleDelete(product.id)}
+                          className="btn btn-danger btn-sm"
+                        >
+                          <i className="fas fa-trash"></i> Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
