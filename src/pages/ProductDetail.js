@@ -9,27 +9,26 @@ function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
 
-  // fetchProduct को useEffect के अंदर ले जाते हैं
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        // डेमो डेटा - बाद में Firebase से replace करें
+        // Demo data - replace with Firebase later
         const demoProducts = [
           {
             id: "1",
-            name: "स्मार्टफोन",
-            price: 19999,
-            description: "128GB स्टोरेज, 8GB RAM, 48MP कैमरा",
-            imageUrl: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
-            category: "इलेक्ट्रॉनिक्स"
+            name: "Modern Sofa",
+            price: 29999,
+            description: "Comfortable 3-seater sofa in premium fabric",
+            imageUrl: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+            category: "Furniture"
           },
           {
             id: "2", 
-            name: "लैपटॉप",
-            price: 45999,
-            description: "15.6 इंच, Intel i5, 8GB RAM, 512GB SSD",
-            imageUrl: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
-            category: "इलेक्ट्रॉनिक्स"
+            name: "LED Lamp",
+            price: 3499,
+            description: "Energy efficient LED wall lamp with dimmer",
+            imageUrl: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+            category: "Lighting"
           }
         ];
         
@@ -37,19 +36,19 @@ function ProductDetail() {
         if (foundProduct) {
           setProduct(foundProduct);
         } else {
-          alert('उत्पाद नहीं मिला!');
+          alert('Product not found!');
           navigate('/products');
         }
       } catch (error) {
         console.error('Error fetching product:', error);
-        alert('उत्पाद लोड करने में त्रुटि!');
+        alert('Error loading product!');
       } finally {
         setLoading(false);
       }
     };
 
     fetchProduct();
-  }, [id, navigate]); // सभी dependencies include करें
+  }, [id, navigate]);
 
   const addToCart = () => {
     if (!product) return;
@@ -67,7 +66,7 @@ function ProductDetail() {
     }
     
     localStorage.setItem('cart', JSON.stringify(cart));
-    alert(`${product.name} कार्ट में जोड़ दिया गया है!`);
+    alert(`${product.name} added to cart!`);
   };
 
   const buyNow = () => {
@@ -79,7 +78,7 @@ function ProductDetail() {
     return (
       <div className="loading">
         <div className="spinner"></div>
-        <p>उत्पाद लोड हो रहा है...</p>
+        <p>Loading product...</p>
       </div>
     );
   }
@@ -88,9 +87,9 @@ function ProductDetail() {
     return (
       <div className="not-found">
         <i className="fas fa-exclamation-triangle"></i>
-        <h2>उत्पाद नहीं मिला</h2>
+        <h2>Product Not Found</h2>
         <button onClick={() => navigate('/products')} className="btn btn-primary">
-          सभी उत्पाद देखें
+          View All Products
         </button>
       </div>
     );
@@ -100,7 +99,7 @@ function ProductDetail() {
     <div className="product-detail-page">
       <div className="container">
         <button onClick={() => navigate(-1)} className="back-btn">
-          <i className="fas fa-arrow-left"></i> वापस जाएँ
+          <i className="fas fa-arrow-left"></i> Back
         </button>
         
         <div className="product-detail-container">
@@ -111,7 +110,7 @@ function ProductDetail() {
               ) : (
                 <div className="no-image-large">
                   <i className="fas fa-image"></i>
-                  <p>कोई इमेज नहीं</p>
+                  <p>No Image</p>
                 </div>
               )}
             </div>
@@ -122,10 +121,10 @@ function ProductDetail() {
             
             <div className="product-meta">
               <span className="category">
-                <i className="fas fa-tag"></i> {product.category || 'सामान्य'}
+                <i className="fas fa-tag"></i> {product.category || 'General'}
               </span>
               <span className="stock">
-                <i className="fas fa-box"></i> स्टॉक में उपलब्ध
+                <i className="fas fa-box"></i> In Stock
               </span>
             </div>
             
@@ -134,7 +133,7 @@ function ProductDetail() {
             </div>
             
             <div className="quantity-selector">
-              <label>मात्रा:</label>
+              <label>Quantity:</label>
               <div className="quantity-controls">
                 <button 
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -159,16 +158,16 @@ function ProductDetail() {
             </div>
             
             <div className="product-description">
-              <h3>विवरण</h3>
-              <p>{product.description || 'कोई विवरण नहीं'}</p>
+              <h3>Description</h3>
+              <p>{product.description || 'No description available'}</p>
             </div>
             
             <div className="product-actions">
               <button onClick={addToCart} className="btn btn-primary add-to-cart">
-                <i className="fas fa-cart-plus"></i> कार्ट में डालें
+                <i className="fas fa-cart-plus"></i> Add to Cart
               </button>
               <button onClick={buyNow} className="btn btn-success buy-now">
-                <i className="fas fa-bolt"></i> अभी खरीदें
+                <i className="fas fa-bolt"></i> Buy Now
               </button>
             </div>
             
@@ -176,15 +175,15 @@ function ProductDetail() {
               <div className="feature">
                 <i className="fas fa-shipping-fast"></i>
                 <div>
-                  <h4>मुफ़्त डिलीवरी</h4>
-                  <p>₹999+ ऑर्डर पर</p>
+                  <h4>Free Shipping</h4>
+                  <p>On orders above ₹999</p>
                 </div>
               </div>
               <div className="feature">
                 <i className="fas fa-exchange-alt"></i>
                 <div>
-                  <h4>10 दिन रिटर्न</h4>
-                  <p>आसान रिटर्न पॉलिसी</p>
+                  <h4>10 Day Returns</h4>
+                  <p>Easy return policy</p>
                 </div>
               </div>
             </div>
