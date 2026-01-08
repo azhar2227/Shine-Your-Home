@@ -27,12 +27,12 @@ function Register() {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
-      setError('पासवर्ड मेल नहीं खा रहे हैं!');
+      setError('Passwords do not match!');
       return;
     }
     
     if (formData.password.length < 6) {
-      setError('पासवर्ड कम से कम 6 अक्षर का होना चाहिए!');
+      setError('Password must be at least 6 characters!');
       return;
     }
 
@@ -41,11 +41,11 @@ function Register() {
 
     try {
       await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-      alert('रजिस्ट्रेशन सफल! आप लॉगिन कर सकते हैं।');
+      alert('Registration successful! You can now login.');
       navigate('/login');
     } catch (error) {
       console.error('Registration error:', error);
-      setError('रजिस्ट्रेशन असफल! कृपया दोबारा कोशिश करें।');
+      setError('Registration failed! Please try again.');
     } finally {
       setLoading(false);
     }
@@ -56,27 +56,27 @@ function Register() {
       <div className="container">
         <div className="auth-container">
           <div className="auth-header">
-            <h1><i className="fas fa-user-plus"></i> रजिस्टर</h1>
-            <p>नया अकाउंट बनाएं</p>
+            <h1><i className="fas fa-user-plus"></i> Register</h1>
+            <p>Create a new account</p>
           </div>
           
           <form onSubmit={handleSubmit} className="auth-form">
             {error && <div className="error-message">{error}</div>}
             
             <div className="form-group">
-              <label>पूरा नाम</label>
+              <label>Full Name</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="आपका नाम"
+                placeholder="Your name"
                 required
               />
             </div>
             
             <div className="form-group">
-              <label>ईमेल एड्रेस</label>
+              <label>Email Address</label>
               <input
                 type="email"
                 name="email"
@@ -88,25 +88,25 @@ function Register() {
             </div>
             
             <div className="form-group">
-              <label>पासवर्ड</label>
+              <label>Password</label>
               <input
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="कम से कम 6 अक्षर"
+                placeholder="At least 6 characters"
                 required
               />
             </div>
             
             <div className="form-group">
-              <label>पासवर्ड पुष्टि करें</label>
+              <label>Confirm Password</label>
               <input
                 type="password"
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                placeholder="पासवर्ड दोबारा लिखें"
+                placeholder="Confirm password"
                 required
               />
             </div>
@@ -116,12 +116,12 @@ function Register() {
               className="btn btn-primary auth-btn"
               disabled={loading}
             >
-              {loading ? 'अकाउंट बन रहा है...' : 'रजिस्टर करें'}
+              {loading ? 'Creating account...' : 'Register'}
             </button>
             
             <div className="auth-footer">
-              <p>पहले से अकाउंट है? <Link to="/login">लॉगिन करें</Link></p>
-              <p>वापस जाएँ <Link to="/">होमपेज</Link></p>
+              <p>Already have an account? <Link to="/login">Login</Link></p>
+              <p>Back to <Link to="/">Home</Link></p>
             </div>
           </form>
         </div>
