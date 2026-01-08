@@ -38,7 +38,7 @@ function Cart({ user }) {
   };
 
   const clearCart = () => {
-    if (window.confirm('क्या आप पूरी कार्ट साफ़ करना चाहते हैं?')) {
+    if (window.confirm('Clear entire cart?')) {
       setCartItems([]);
       localStorage.removeItem('cart');
     }
@@ -50,17 +50,17 @@ function Cart({ user }) {
 
   const proceedToCheckout = () => {
     if (!user) {
-      alert('चेकआउट के लिए कृपया लॉगिन करें');
+      alert('Please login to checkout');
       navigate('/login');
       return;
     }
 
     if (cartItems.length === 0) {
-      alert('कार्ट खाली है!');
+      alert('Your cart is empty!');
       return;
     }
 
-    alert('चेकआउट सफल! यह एक डेमो वेबसाइट है।');
+    alert('Checkout successful! (Demo)');
     setCartItems([]);
     localStorage.removeItem('cart');
     navigate('/');
@@ -70,7 +70,7 @@ function Cart({ user }) {
     return (
       <div className="loading">
         <div className="spinner"></div>
-        <p>कार्ट लोड हो रही है...</p>
+        <p>Loading cart...</p>
       </div>
     );
   }
@@ -78,15 +78,15 @@ function Cart({ user }) {
   return (
     <div className="cart-page">
       <div className="container">
-        <h1 className="page-title">आपकी शॉपिंग कार्ट</h1>
+        <h1 className="page-title">Your Shopping Cart</h1>
         
         {cartItems.length === 0 ? (
           <div className="empty-cart">
             <i className="fas fa-shopping-cart"></i>
-            <h2>आपकी कार्ट खाली है</h2>
-            <p>कुछ अच्छे उत्पाद खोजने के लिए ब्राउज़ करें</p>
+            <h2>Your cart is empty</h2>
+            <p>Browse products to add items</p>
             <Link to="/products" className="btn btn-primary">
-              <i className="fas fa-shopping-bag"></i> खरीदारी शुरू करें
+              <i className="fas fa-shopping-bag"></i> Start Shopping
             </Link>
           </div>
         ) : (
@@ -144,43 +144,43 @@ function Cart({ user }) {
                 
                 <div className="cart-actions">
                   <button onClick={clearCart} className="btn btn-danger">
-                    <i className="fas fa-trash"></i> कार्ट साफ़ करें
+                    <i className="fas fa-trash"></i> Clear Cart
                   </button>
                   <Link to="/products" className="btn btn-primary">
-                    <i className="fas fa-plus"></i> और उत्पाद जोड़ें
+                    <i className="fas fa-plus"></i> Add More
                   </Link>
                 </div>
               </div>
               
               <div className="cart-summary">
-                <h2>ऑर्डर सारांश</h2>
+                <h2>Order Summary</h2>
                 
                 <div className="summary-row">
-                  <span>उप-योग:</span>
+                  <span>Subtotal:</span>
                   <span>₹{calculateTotal()}</span>
                 </div>
                 
                 <div className="summary-row">
-                  <span>शिपिंग:</span>
-                  <span className="free">मुफ़्त</span>
+                  <span>Shipping:</span>
+                  <span className="free">Free</span>
                 </div>
                 
                 <div className="summary-row">
-                  <span>कर (18%):</span>
+                  <span>Tax (18%):</span>
                   <span>₹{(calculateTotal() * 0.18).toFixed(2)}</span>
                 </div>
                 
                 <div className="summary-row total">
-                  <span>कुल राशि:</span>
+                  <span>Total:</span>
                   <span>₹{(calculateTotal() * 1.18).toFixed(2)}</span>
                 </div>
                 
                 <button onClick={proceedToCheckout} className="btn btn-success checkout-btn">
-                  <i className="fas fa-lock"></i> सुरक्षित चेकआउट
+                  <i className="fas fa-lock"></i> Checkout
                 </button>
                 
                 <div className="payment-methods">
-                  <h3>भुगतान के तरीके</h3>
+                  <h3>Payment Methods</h3>
                   <div className="methods">
                     <i className="fab fa-cc-visa"></i>
                     <i className="fab fa-cc-mastercard"></i>
